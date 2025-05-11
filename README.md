@@ -11,7 +11,7 @@ export MOKU_IP=10.0.44.219
 # ENV Vars
 ## MOKU-DATA-PATH: `./mokudata-601`
 ```
-### `mokudata-601.tar`
+### mokudata-601.tar
 ```
 johnycsh@DRP-e1 Moku-Go % md5sum ./mokudata-601/mokudata-601.tar
 a88872e8e032f4a45e8f1ce8e98c765a ./mokudata-601/mokudata-601.tar
