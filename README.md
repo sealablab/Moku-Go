@@ -33,8 +33,6 @@ johnycsh@DRP-e1 Moku-Go.mokudata-601/ % ls -lh ./mokudata-601/mokudata-601.tar
 export MOKU_DATA_PATH=mokudata-601
 export MOKU_IP=10.0.44.219
 ```
-# ENV Vars
-## MOKU-DATA-PATH: `./mokudata-601`
 
 # Debugging:
 I get the following error
@@ -45,3 +43,5 @@ AttributeError: 'NoneType' object has no attribute 'get_data'
 Moku-Go was unable to locate your upstream bitstreams. 
 Check your `MOKU_DATA_PATH` Env var, and try again.
 
+# ENV Vars
+## MOKU-DATA-PATH: `./mokudata-601`
