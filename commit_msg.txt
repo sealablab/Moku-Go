@@ -1,9 +1,0 @@
-feat: integrate Loguru logging and global loglevel option
-
-- Rename Typer callback from 'main' to 'cli_callback_main' to avoid conflicts with entry point.
-- Add global --loglevel option (with MOKU_LOGLEVEL env var support) to control logging verbosity.
-- Update README to document all environment variables, including official and custom ones.
-- Add root log redirection to capture logs from the 'moku' module.
-- Update pyproject.toml to use 'app' as the CLI entry point.
-
-This commit improves logging flexibility and documentation for the Moku-Go CLI. 
