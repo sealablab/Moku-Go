@@ -46,4 +46,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# uv package manager lock file
+uv.lock
+
 # End of https://www.toptal.com/developers/gitignore/api/vim,visualstudiocode
