@@ -56,7 +56,7 @@ logging.basicConfig(handlers=[InterceptHandler()], level=0)
 @app.callback()
 def cli_callback_main():
     """Global options and Loguru logging setup."""
-    loglevel = os.environ.get("MOKU_LOGLEVEL", "INFO")
+    loglevel = os.environ.get("MOKU_LOGLEVEL", "WARNING")
     logger.remove()
     logger.add(
         sys.stderr,
