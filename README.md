@@ -1,36 +1,14 @@
 # [Moku-Go](https://github.com/sealablab/Moku-Go)
 
-```
-   __  __      _  __    ____       
-  |  \/  | ___| || |   / ___| ___  
-  | |\/| |/ _ \ || |_ | |  _ / _ \ 
-  | |  | |  __/__   _|| |_| | (_) |
-  |_|  |_|\___|  |_|   \____\___/ 
-```
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![CLI Tool](https://img.shields.io/badge/CLI-Tool-green.svg)](https://github.com/sealablab/Moku-Go)
 
 > The CLI you always wanted 🚀
-
-## 📋 Table of Contents
-- [CLI Interface](#cli-interface)
-- [Usage](#usage)
-- [Installation](#installation)
-- [Environment Variables](#environment-variables)
-- [Setting up Moku Bitstreams](#setting-up-moku-bitstreams)
-- [Debugging](#debugging)
-
-## 🖥️ CLI Interface
-
-Here's how the CLI looks in action:
-
 ```bash
 $ moku-go
-                                                                                      
  Usage: moku-go [OPTIONS] COMMAND [ARGS]...                                           
-                                                                                      
  CLI interface for Liquid Instruments Moku-Go device                                  
                                                                                       
 ╭─ Options ──────────────────────────────────────────────────────────────────────────╮
@@ -42,7 +20,6 @@ $ moku-go
 │ scope        Connect to and configure the oscilloscope instrument                  │
 ╰────────────────────────────────────────────────────────────────────────────────────╯
 
-
 Device Cache:
 ┏━━━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
 ┃ Name   ┃ IP Address  ┃ Port  ┃ Serial Number ┃ Last Seen     ┃
@@ -51,6 +28,15 @@ Device Cache:
 │ Stitch │ 10.0.45.61  │ 27181 │ 005628        │ 8 minutes ago │
 └────────┴─────────────┴───────┴───────────────┴───────────────┘
 ```
+
+## 📋 Table of Contents
+- [CLI Interface](#cli-interface)
+- [Usage](#usage)
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Setting up Moku Bitstreams](#setting-up-moku-bitstreams)
+- [Debugging](#debugging)
+
 
 ## 🚀 Usage
 
