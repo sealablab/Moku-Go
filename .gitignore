@@ -87,3 +87,4 @@ env.sh
 commit_msg.txt
 
 # End of https://www.toptal.com/developers/gitignore/api/vim,visualstudiocode
+uv.lock
