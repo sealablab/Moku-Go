@@ -1,0 +1,17 @@
+# Moku-Go Oscilloscope Configuration
+
+# Input source configuration
+sources:
+  1: Input1  # Channel 1 source
+  2: Input2  # Channel 2 source
+
+# Trigger configuration
+trigger:
+  type: Edge
+  source: Input1
+  level: 0.01  # Volts
+
+# Timebase configuration (in seconds)
+timebase:
+  start: -5e-6  # -5 microseconds
+  end: 5e-6     # +5 microseconds 

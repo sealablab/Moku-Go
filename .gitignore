@@ -45,8 +45,17 @@ tags
 __pycache__/
 *.py[cod]
 *$py.class
+.Python
+.venv/
+venv/
+ENV/
 
 # uv package manager lock file
 uv.lock
+
+# Moku specific
+mokudatadir/
+*.tar
+env.sh
 
 # End of https://www.toptal.com/developers/gitignore/api/vim,visualstudiocode
