@@ -7,8 +7,9 @@ from rich.console import Console
 from rich.table import Table
 from loguru import logger
 from zeroconf import ServiceBrowser, Zeroconf, ServiceStateChange
-from moku import Moku
 import sys
+
+from .device import MokuDevice
 
 # Initialize Typer app
 app = typer.Typer(
@@ -28,30 +29,6 @@ def setup_logging():
         format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
         level="INFO",
     )
-
-class MokuDevice:
-    def __init__(self, ip: str = None):
-        self.ip = ip
-        self.device = None
-
-    def connect(self, force: bool = False) -> bool:
-        """Connect to the Moku device"""
-        try:
-            self.device = Moku(ip=self.ip, force_connect=force)
-            logger.info(f"Successfully connected to Moku device at {self.ip}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to connect to device: {e}")
-            return False
-
-    def disconnect(self):
-        """Disconnect from the Moku device"""
-        if self.device:
-            try:
-                self.device.relinquish_ownership()
-                logger.info("Disconnected from Moku device")
-            except Exception as e:
-                logger.error(f"Error disconnecting from device: {e}")
 
 def discover_devices() -> list:
     """Discover Moku devices on the network using zeroconf"""
@@ -122,4 +99,4 @@ def main():
     app()
 
 if __name__ == "__main__":
-    main() 
+    main()

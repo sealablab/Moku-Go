@@ -13,6 +13,9 @@ dependencies = [
     "hatchling>=1.21.0",
 ]
 
+[project.scripts]
+moku-go = "moku_go.cli:main"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
