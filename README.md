@@ -4,10 +4,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![CLI Tool](https://img.shields.io/badge/CLI-Tool-green.svg)](https://github.com/sealablab/Moku-Go)
-
 > The CLI you always wanted 🚀
 
-[![asciicast](https://asciinema.org/a/ktQVg6EboUtowrreHyv1I8SeL.svg?poster=npt:3.0)](https://asciinema.org/a/ktQVg6EboUtowrreHyv1I8SeL)
+[![asciicast](https://asciinema.org/a/ktQVg6EboUtowrreHyv1I8SeL.svg?poster=npt:3.5)](https://asciinema.org/a/ktQVg6EboUtowrreHyv1I8SeL)
 
 ```bash
 $ moku-go
