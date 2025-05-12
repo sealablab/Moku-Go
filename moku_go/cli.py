@@ -88,8 +88,12 @@ def discover_devices() -> list:
                 # Use first IPv4 address if available, otherwise fall back to first address
                 ip = ipv4_addresses[0] if ipv4_addresses else addresses[0]
                 
+                # Extract friendly_name from zeroconf properties, defaulting to the service name if not found
+                friendly_name = info.properties.get(b'friendly_name', name.encode()).decode()
+                
                 devices.append({
                     'name': name,
+                    'friendly_name': friendly_name,
                     'ip': ip,
                     'port': info.port
                 })
@@ -118,12 +122,25 @@ def discover(
     table.add_column("Name")
     table.add_column("IP Address")
     table.add_column("Port")
+    table.add_column("Serial Number")
 
     for device in devices:
+        # Connect to the device to retrieve metadata
+        moku_device = MokuDevice(ip=device['ip'])
+        if moku_device.connect():
+            metadata = moku_device.get_metadata()
+            name = metadata["name"]
+            serial_number = metadata["serial_number"]
+        else:
+            name = "N/A"
+            serial_number = "N/A"
+        moku_device.disconnect()
+
         table.add_row(
-            device['name'],
+            name,
             device['ip'],
-            str(device['port'])
+            str(device['port']),
+            serial_number
         )
 
     console.print(table)
