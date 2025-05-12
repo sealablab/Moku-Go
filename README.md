@@ -7,7 +7,7 @@
 
 > The CLI you always wanted 🚀
 
-[![asciicast](https://asciinema.org/a/ktQVg6EboUtowrreHyv1I8SeL.svg?poster=npt:3.5)](https://asciinema.org/a/ktQVg6EboUtowrreHyv1I8SeL)
+[![asciicast](https://asciinema.org/a/ktQVg6EboUtowrreHyv1I8SeL.svg?poster=npt:3.0)](https://asciinema.org/a/ktQVg6EboUtowrreHyv1I8SeL)
 
 ```bash
 $ moku-go
