@@ -52,25 +52,19 @@ class InterceptHandler(logging.Handler):
 
 logging.basicConfig(handlers=[InterceptHandler()], level=0)
 
+# Global callback: runs before any command to set up logging and global options.
 @app.callback()
-def cli_callback_main(
-    loglevel: str = typer.Option(
-        "INFO",
-        "--loglevel",
-        envvar="MOKU_LOGLEVEL",
-        help="Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
-        show_default=True,
-    )
-):
+def cli_callback_main():
     """Global options and Loguru logging setup."""
+    loglevel = os.environ.get("MOKU_LOGLEVEL", "INFO")
     logger.remove()
     logger.add(
         sys.stderr,
         format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-        level=str(loglevel).upper(),
+        level=loglevel.upper(),
         colorize=True,
     )
-    logger.debug(f"Loguru configured with level: {str(loglevel).upper()}")
+    logger.debug(f"Loguru configured with level: {loglevel.upper()}")
 
 def discover_devices() -> list:
     """Discover Moku devices on the network using zeroconf"""
@@ -107,7 +101,7 @@ def discover_devices() -> list:
 
 @app.command()
 def discover(
-    timeout: int = typer.Option(2, help="Discovery timeout in seconds")
+    timeout: int = typer.Option(2, help="Discovery timeout in seconds", metavar="SECONDS"),
 ):
     """Discover Moku devices on the network"""
     console.print("[bold blue]Discovering Moku devices...[/bold blue]")
@@ -150,9 +144,10 @@ def connect(
     ip: str = typer.Argument(
         ..., 
         help="IP address of the Moku device (can also be set via MOKU_IP env var)",
-        envvar="MOKU_IP"
+        envvar="MOKU_IP",
+        metavar="IP"
     ),
-    force: bool = typer.Option(False, "--force", "-f", help="Force connection even if device is in use")
+    force: bool = typer.Option(False, "--force", "-f", help="Force connection even if device is in use"),
 ):
     """Connect to a Moku device"""
     console.print(f"[bold blue]Connecting to Moku device at {ip}...[/bold blue]")
@@ -169,10 +164,11 @@ def scope(
     ip: str = typer.Argument(
         ..., 
         help="IP address of the Moku device (can also be set via MOKU_IP env var)",
-        envvar="MOKU_IP"
+        envvar="MOKU_IP",
+        metavar="IP"
     ),
-    config_file: Optional[str] = typer.Option(None, "--config", "-c", help="Path to YAML configuration file"),
-    force: bool = typer.Option(False, "--force", "-f", help="Force connection even if device is in use")
+    config_file: Optional[str] = typer.Option(None, "--config", "-c", help="Path to YAML configuration file", metavar="FILE"),
+    force: bool = typer.Option(False, "--force", "-f", help="Force connection even if device is in use"),
 ):
     """Connect to and configure the oscilloscope instrument"""
     console.print(f"[bold blue]Connecting to oscilloscope at {ip}...[/bold blue]")
