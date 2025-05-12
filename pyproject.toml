@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.scripts]
-moku-go = "moku_go.cli:main"
+moku-go = "moku_go.cli:app"
 
 [build-system]
 requires = ["hatchling"]

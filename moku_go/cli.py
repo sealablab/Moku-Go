@@ -10,6 +10,8 @@ from zeroconf import ServiceBrowser, Zeroconf, ServiceStateChange
 import sys
 import yaml
 from pathlib import Path
+import os
+import logging
 
 from .device import MokuDevice
 from .osc import MokuOscilloscope
@@ -19,19 +21,56 @@ app = typer.Typer(
     name="moku-go",
     help="CLI interface for Liquid Instruments Moku-Go device",
     add_completion=False,
+    invoke_without_command=True,
 )
 
 # Initialize Rich console
 console = Console()
 
-def setup_logging():
-    """Configure logging with loguru"""
-    logger.remove()  # Remove default handler
+# Root Log Redirection
+# -------------------
+# This block redirects logs from Python's standard logging module (used by the 'moku' module)
+# to Loguru. It does this by:
+# 1. Defining a custom logging handler (InterceptHandler) that captures log records
+#    from the root logger.
+# 2. For each log record, it converts the log level to a Loguru level and uses
+#    Loguru's logger.opt() to log the message with the correct depth and exception info.
+# 3. Configuring the root logger to use this handler, ensuring that any logs from
+#    the 'moku' module (or any other module using Python's logging) are captured
+#    and formatted by Loguru.
+class InterceptHandler(logging.Handler):
+    def emit(self, record):
+        try:
+            level = logger.level(record.levelname).name
+        except ValueError:
+            level = record.levelno
+        frame, depth = logging.currentframe(), 2
+        while frame.f_code.co_filename == logging.__file__:
+            frame = frame.f_back
+            depth += 1
+        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+
+logging.basicConfig(handlers=[InterceptHandler()], level=0)
+
+@app.callback()
+def cli_callback_main(
+    loglevel: str = typer.Option(
+        "INFO",
+        "--loglevel",
+        envvar="MOKU_LOGLEVEL",
+        help="Set the logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)",
+        show_default=True,
+    )
+):
+    """Global options and Loguru logging setup."""
+    logger.remove()
     logger.add(
         sys.stderr,
         format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
-        level="INFO",
+        level=str(loglevel).upper(),
+        colorize=True,
     )
+    logger.debug(f"Loguru configured with level: {str(loglevel).upper()}")
 
 def discover_devices() -> list:
     """Discover Moku devices on the network using zeroconf"""
@@ -140,6 +179,7 @@ def scope(
                 raise typer.Exit(1)
         except Exception as e:
             console.print(f"[red]Error loading configuration: {e}[/red]")
+            logger.exception("Error loading configuration file")
             raise typer.Exit(1)
     
     try:
@@ -153,9 +193,5 @@ def scope(
     finally:
         scope.disconnect()
 
-def main():
-    setup_logging()
-    app()
-
 if __name__ == "__main__":
-    main()
+    app()

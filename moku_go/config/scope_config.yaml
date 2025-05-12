@@ -2,13 +2,13 @@
 
 # Input source configuration
 sources:
-  1: Input1  # Channel 1 source
-  2: Input2  # Channel 2 source
+  1: "Input1"  # Channel 1 source
+  2: "Input2"  # Channel 2 source
 
 # Trigger configuration
 trigger:
-  type: Edge
-  source: Input1
+  type: "Edge"
+  source: "Input1"
   level: 0.01  # Volts
 
 # Timebase configuration (in seconds)
