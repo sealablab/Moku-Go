@@ -12,6 +12,8 @@ import yaml
 from pathlib import Path
 import os
 import logging
+import json
+import datetime
 
 from .device import MokuDevice
 from .osc import MokuOscilloscope
@@ -26,6 +28,37 @@ app = typer.Typer(
 
 # Initialize Rich console
 console = Console()
+
+# Cache file path
+CACHE_FILE = Path.home() / ".moku-go" / "device_cache.json"
+
+# Cache for discovered devices, keyed by IP
+known_devices = {}
+
+def load_cache():
+    """Load the device cache from disk"""
+    global known_devices
+    try:
+        if not CACHE_FILE.exists():
+            return
+        with open(CACHE_FILE) as f:
+            known_devices = json.load(f)
+    except Exception as e:
+        logger.warning(f"Could not load device cache: {e}")
+        try:
+            CACHE_FILE.unlink()
+        except Exception:
+            pass
+        console.print("[yellow]Device cache was invalid. Please run 'moku-go discover' to find devices.[/yellow]")
+
+def save_cache():
+    """Save the device cache to disk"""
+    try:
+        CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(CACHE_FILE, 'w') as f:
+            json.dump(known_devices, f)
+    except Exception as e:
+        logger.warning(f"Could not save device cache: {e}")
 
 # Root Log Redirection
 # -------------------
@@ -52,10 +85,26 @@ class InterceptHandler(logging.Handler):
 
 logging.basicConfig(handlers=[InterceptHandler()], level=0)
 
-# Global callback: runs before any command to set up logging and global options.
-@app.callback()
-def cli_callback_main():
-    """Global options and Loguru logging setup."""
+def humanize_time_ago(dt: datetime.datetime) -> str:
+    now = datetime.datetime.utcnow()
+    diff = now - dt
+    seconds = int(diff.total_seconds())
+    if seconds < 60:
+        return f"{seconds} seconds ago"
+    elif seconds < 3600:
+        minutes = seconds // 60
+        return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
+    elif seconds < 86400:
+        hours = seconds // 3600
+        return f"{hours} hour{'s' if hours != 1 else ''} ago"
+    else:
+        days = seconds // 86400
+        return f"{days} day{'s' if days != 1 else ''} ago"
+
+@app.callback(invoke_without_command=True)
+def main(ctx: typer.Context):
+    """CLI interface for Liquid Instruments Moku-Go device"""
+    # Set up logging
     loglevel = os.environ.get("MOKU_LOGLEVEL", "WARNING")
     logger.remove()
     logger.add(
@@ -65,6 +114,39 @@ def cli_callback_main():
         colorize=True,
     )
     logger.debug(f"Loguru configured with level: {loglevel.upper()}")
+    
+    # Load device cache
+    load_cache()
+    
+    # Show help if no command provided
+    if ctx.invoked_subcommand is None:
+        typer.echo(ctx.get_help())
+        # Print cached devices summary
+        if known_devices:
+            table = Table(show_header=True, header_style="bold yellow")
+            table.add_column("Name")
+            table.add_column("IP Address")
+            table.add_column("Port")
+            table.add_column("Serial Number")
+            table.add_column("Last Seen")
+            for device in known_devices.values():
+                name = device.get('canonical_name') or 'N/A'
+                ip = device.get('ip', 'N/A')
+                port = str(device.get('port', 'N/A'))
+                serial = device.get('serial_number', 'N/A')
+                last_seen = device.get('last_seen')
+                if last_seen:
+                    try:
+                        dt = datetime.datetime.fromisoformat(last_seen)
+                        last_seen_str = humanize_time_ago(dt)
+                    except Exception:
+                        last_seen_str = last_seen
+                else:
+                    last_seen_str = 'N/A'
+                table.add_row(name, ip, port, serial, last_seen_str)
+            console.print("\n[bold]Device Cache:[/bold]")
+            console.print(table)
+        raise typer.Exit()
 
 def discover_devices() -> list:
     """Discover Moku devices on the network using zeroconf"""
@@ -75,28 +157,26 @@ def discover_devices() -> list:
         if state_change == ServiceStateChange.Added:
             info = zeroconf.get_service_info(service_type, name)
             if info:
-                # Get all addresses
                 addresses = info.parsed_addresses()
-                # Prefer IPv4 addresses
                 ipv4_addresses = [addr for addr in addresses if ':' not in addr]
-                # Use first IPv4 address if available, otherwise fall back to first address
                 ip = ipv4_addresses[0] if ipv4_addresses else addresses[0]
-                
-                # Extract friendly_name from zeroconf properties, defaulting to the service name if not found
-                friendly_name = info.properties.get(b'friendly_name', name.encode()).decode()
-                
-                devices.append({
-                    'name': name,
-                    'friendly_name': friendly_name,
+                now = datetime.datetime.utcnow().isoformat()
+                device_info = {
+                    'zeroconf_name': name,
                     'ip': ip,
-                    'port': info.port
-                })
+                    'port': info.port,
+                    'canonical_name': None,  # Will be set after successful connect
+                    'last_seen': now
+                }
+                devices.append(device_info)
+                # Cache is keyed by IP only
+                known_devices[ip] = device_info
 
     browser = ServiceBrowser(zc, "_moku._tcp.local.", handlers=[on_service_state_change])
-    # Wait for discovery (you might want to adjust this timeout)
     import time
     time.sleep(2)
     zc.close()
+    save_cache()
     return devices
 
 @app.command()
@@ -106,6 +186,8 @@ def discover(
     """Discover Moku devices on the network"""
     console.print("[bold blue]Discovering Moku devices...[/bold blue]")
     
+    # Clear the cache before new discovery
+    known_devices.clear()
     devices = discover_devices()
     
     if not devices:
@@ -123,37 +205,62 @@ def discover(
         moku_device = MokuDevice(ip=device['ip'])
         if moku_device.connect():
             metadata = moku_device.get_metadata()
-            name = metadata["name"]
+            canonical_name = metadata["name"]
             serial_number = metadata["serial_number"]
+            now = datetime.datetime.utcnow().isoformat()
+            # Update cache with metadata
+            known_devices[device['ip']].update({
+                'canonical_name': canonical_name,
+                'serial_number': serial_number,
+                'last_seen': now
+            })
         else:
-            name = "N/A"
+            canonical_name = "N/A"
             serial_number = "N/A"
         moku_device.disconnect()
 
         table.add_row(
-            name,
+            canonical_name,
             device['ip'],
             str(device['port']),
             serial_number
         )
 
+    # Save cache after updating with metadata
+    save_cache()
     console.print(table)
 
 @app.command()
 def connect(
-    ip: str = typer.Argument(
+    identifier: str = typer.Argument(
         ..., 
-        help="IP address of the Moku device (can also be set via MOKU_IP env var)",
+        help="IP address or name of the Moku device (can also be set via MOKU_IP env var)",
         envvar="MOKU_IP",
-        metavar="IP"
+        metavar="IP_OR_NAME"
     ),
     force: bool = typer.Option(False, "--force", "-f", help="Force connection even if device is in use"),
 ):
     """Connect to a Moku device"""
+    ip = None
+    if all(c.isdigit() or c == '.' for c in identifier):
+        ip = identifier
+    else:
+        # Search cache for a matching name
+        for cached_ip, device_info in known_devices.items():
+            if device_info.get('canonical_name', '').lower() == identifier.lower():
+                ip = cached_ip
+                break
+        if not ip:
+            raise typer.BadParameter(f"Device '{identifier}' not found. Please run 'moku-go discover' first.")
+
     console.print(f"[bold blue]Connecting to Moku device at {ip}...[/bold blue]")
-    
     device = MokuDevice(ip=ip)
     if device.connect(force=force):
+        # Update cache with canonical name after successful connect
+        now = datetime.datetime.utcnow().isoformat()
+        known_devices[ip]['canonical_name'] = device.name
+        known_devices[ip]['last_seen'] = now
+        save_cache()
         console.print("[green]Successfully connected to device[/green]")
     else:
         console.print("[red]Failed to connect to device[/red]")
@@ -161,19 +268,29 @@ def connect(
 
 @app.command()
 def scope(
-    ip: str = typer.Argument(
+    identifier: str = typer.Argument(
         ..., 
-        help="IP address of the Moku device (can also be set via MOKU_IP env var)",
+        help="IP address or name of the Moku device (can also be set via MOKU_IP env var)",
         envvar="MOKU_IP",
-        metavar="IP"
+        metavar="IP_OR_NAME"
     ),
     config_file: Optional[str] = typer.Option(None, "--config", "-c", help="Path to YAML configuration file", metavar="FILE"),
     force: bool = typer.Option(False, "--force", "-f", help="Force connection even if device is in use"),
 ):
     """Connect to and configure the oscilloscope instrument"""
+    ip = None
+    if all(c.isdigit() or c == '.' for c in identifier):
+        ip = identifier
+    else:
+        # Search cache for a matching name
+        for cached_ip, device_info in known_devices.items():
+            if device_info.get('canonical_name', '').lower() == identifier.lower():
+                ip = cached_ip
+                break
+        if not ip:
+            raise typer.BadParameter(f"Device '{identifier}' not found. Please run 'moku-go discover' first.")
+
     console.print(f"[bold blue]Connecting to oscilloscope at {ip}...[/bold blue]")
-    
-    # Create and connect oscilloscope
     scope = MokuOscilloscope(ip=ip, force_connect=force)
     if not scope.connect():
         console.print("[red]Failed to connect to oscilloscope[/red]")
@@ -196,11 +313,9 @@ def scope(
             raise typer.Exit(1)
     
     try:
-        # Get and display data
         data = scope.get_data()
         if data:
             console.print("[green]Successfully captured data[/green]")
-            # TODO: Add data visualization or export functionality
         else:
             console.print("[red]Failed to capture data[/red]")
     finally:

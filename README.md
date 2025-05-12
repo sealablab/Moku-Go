@@ -3,14 +3,44 @@
 The CLI you always wanted
 
 # Usage
+## Discover Devices
+```bash
+moku-go discover
+```
+This will find all Moku devices on your network and cache their information for future use.
+
+## Connect to a Device
+You can connect using either the device's IP address or its name:
+```bash
+# Using IP address
+moku-go connect 10.0.44.219
+
+# Using device name
+moku-go connect Lilo
+```
+
 ## Scope
+You can use either IP address or device name:
+```bash
+# Using IP address
 moku-go scope 10.0.44.219
+
+# Using device name
+moku-go scope Lilo
+```
 
 # With configuration file
 moku-go scope 10.0.44.219 --config moku_go/config/scope_config.yaml
 
 # Force connection if device is in use
 moku-go scope 10.0.44.219 --force
+
+# Device Name Resolution
+The CLI maintains a cache of discovered devices in `~/.moku-go/device_cache.json`. This allows you to:
+- Use device names instead of IP addresses in commands
+- Avoid running discovery every time you want to connect
+
+If the cache becomes invalid, you'll be prompted to run `moku-go discover` again.
 
 # Installation
 We use [uv](https://docs.astral.sh/uv/) for project management, so
