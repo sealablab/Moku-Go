@@ -6,7 +6,7 @@
 [![CLI Tool](https://img.shields.io/badge/CLI-Tool-green.svg)](https://github.com/sealablab/Moku-Go)
 > The CLI you always wanted 🚀
 
-[![asciicast](https://asciinema.org/a/ktQVg6EboUtowrreHyv1I8SeL.svg?t=4.0)](https://asciinema.org/a/ktQVg6EboUtowrreHyv1I8SeL)
+[![asciicast](https://asciinema.org/a/ktQVg6EboUtowrreHyv1I8SeL.svg?t=1.0)](https://asciinema.org/a/ktQVg6EboUtowrreHyv1I8SeL)
 
 ```bash
 $ moku-go
