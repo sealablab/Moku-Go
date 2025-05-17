@@ -1,0 +1,37 @@
+{
+  "language": "python",
+  "style": {
+    "typing": "prefer",
+    "type_comments": false,
+    "docstrings": "numpydoc",
+    "formatting": "black",
+    "linter": "ruff"
+  },
+  "structure": {
+    "source_directory": "moku_go",
+    "config_directory": "moku_go/config",
+    "cli_entrypoint": "moku_go/cli.py",
+    "uses_static_assets": true
+  },
+  "tooling": {
+    "build_system": "uv",
+    "packaging_backend": "hatchling",
+    "dev_dependencies": [
+      "pytest",
+      "mypy",
+      "ruff"
+    ]
+  },
+  "libraries": {
+    "cli": "typer",
+    "logging": "loguru",
+    "output_formatting": "rich",
+    "config": "pyyaml"
+  },
+  "goals": {
+    "audience": "beginner-to-intermediate developers",
+    "tone": "clear, pragmatic, security-aware",
+    "examples": "yes",
+    "commenting": "light but helpful"
+  }
+}
