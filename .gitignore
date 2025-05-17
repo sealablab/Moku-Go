@@ -86,5 +86,37 @@ env.sh
 # Temporary files
 commit_msg.txt
 
-# End of https://www.toptal.com/developers/gitignore/api/vim,visualstudiocode
-uv.lock
+# GHDL temporary files
+*.cf        # GHDL's work library files (can be a single file or multiple if --workdir used)
+*.o         # Object files generated from elaboration
+*.ghw       # Waveform files (GHDL waveform format)
+*.vcd       # Value change dump waveform files
+*.fst       # Fast signal trace files (used with GTKWave)
+*.lst       # Optional listing files from --disp-tree
+*.bin       # Binary output
+*.exe       # Executables on Windows
+*.vpi       # VPI modules if used
+*.vhdlout   # Output from --write-interface or similar options
+*.hex       # ROM/RAM hex dumps
+
+# Coverage and simulation output
+*.gcda
+*.gcno
+*.gcov
+*.log
+*.out
+*.run
+
+# Temporary/editor swap files
+*~
+*.swp
+*.swo
+*.bak
+
+# VSCode / other editor folders
+.vscode/
+.idea/
+
+# GHDL elaborated executable (named same as top-level unit)
+*/tb_*
+*/sim_*
