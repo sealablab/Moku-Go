@@ -9,7 +9,6 @@ It adds the following features / creature comforts.
 
 ## 1. Environment Variable Integration
 The wrapper makes connection parameters configurable through environment variables with sensible defaults:
-- `MOKU_FORCE_CONNECT` (default: true)
 - `MOKU_IGNORE_BUSY` (default: true)
 - `MOKU_PERSIST_STATE` (default: true)
 - `MOKU_CONNECT_TIMEOUT` (default: 10)
@@ -61,27 +60,25 @@ class MokuDevice:
         self.summary = None
         self.describe = None
 
-    def connect(self, force: bool = None) -> bool:
+    def connect(self) -> bool:
         """Connect to the Moku device.
         
-        Args:
-            force (bool, optional): Force connection even if device is in use. 
-                                  If None, uses MOKU_FORCE_CONNECT env var or defaults to True.
-            
         Returns:
             bool: True if connection successful, False otherwise.
         """
         try:
-            # Get connection parameters from environment variables with aggressive defaults
-            force_connect = force if force is not None else os.getenv('MOKU_FORCE_CONNECT', 'true').lower() == 'true'
+            # Get connection parameters from environment variables with sensible defaults
             ignore_busy = os.getenv('MOKU_IGNORE_BUSY', 'true').lower() == 'true'
             persist_state = os.getenv('MOKU_PERSIST_STATE', 'true').lower() == 'true'
             connect_timeout = int(os.getenv('MOKU_CONNECT_TIMEOUT', '10'))
             read_timeout = int(os.getenv('MOKU_READ_TIMEOUT', '10'))
 
+            # TODO: Remove force_connect=True after testing - this should be configurable
+            logger.warning("force_connect is always enabled - remember to make this configurable later!")
+            
             self.device = Moku(
                 ip=self.ip,
-                force_connect=force_connect,
+                force_connect=True,  # Always enabled for now
                 ignore_busy=ignore_busy,
                 persist_state=persist_state,
                 connect_timeout=connect_timeout,

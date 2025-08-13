@@ -321,5 +321,98 @@ def scope(
     finally:
         scope.disconnect()
 
+@app.command()
+def mim(
+    identifier: str = typer.Argument(
+        ..., 
+        help="IP address or name of the Moku device (can also be set via MOKU_IP env var)",
+        envvar="MOKU_IP",
+        metavar="IP_OR_NAME"
+    ),
+    bitstream: str = typer.Option(
+        ..., 
+        "--bitstream", 
+        "-b",
+        help="Path to bitstream .tar file",
+        metavar="FILE"
+    ),
+    slot: int = typer.Option(
+        2, 
+        "--slot", 
+        "-s",
+        help="Slot number for the bitstream (1 or 2)",
+        metavar="SLOT"
+    ),
+    force: bool = typer.Option(False, "--force", "-f", help="Force connection even if device is in use"),
+):
+    """Load a bitstream into multi-instrument mode"""
+    
+    # Validate slot number
+    if slot not in [1, 2]:
+        raise typer.BadParameter("Slot must be 1 or 2")
+    
+    # Validate bitstream file exists
+    bitstream_path = Path(bitstream)
+    if not bitstream_path.exists():
+        raise typer.BadParameter(f"Bitstream file not found: {bitstream}")
+    
+    # Resolve device IP
+    ip = None
+    if all(c.isdigit() or c == '.' for c in identifier):
+        ip = identifier
+    else:
+        # Search cache for a matching name
+        for cached_ip, device_info in known_devices.items():
+            if device_info.get('canonical_name', '').lower() == identifier.lower():
+                ip = cached_ip
+                break
+        if not ip:
+            raise typer.BadParameter(f"Device '{identifier}' not found. Please run 'moku-go discover' first.")
+    
+    console.print(f"[bold blue]Loading bitstream into multi-instrument mode at {ip}...[/bold blue]")
+    
+    try:
+        # Import here to avoid dependency issues if moku package not installed
+        from moku.instruments import MultiInstrument, CloudCompile
+        
+        # Connect to device in multi-instrument mode
+        mim = MultiInstrument(ip, platform_id=2, force_connect=force)
+        
+        # Load bitstream into specified slot
+        mcc = mim.set_instrument(slot, CloudCompile, bitstream=str(bitstream_path))
+        
+        console.print(f"[green]Successfully loaded bitstream into slot {slot}[/green]")
+        console.print(f"[green]Bitstream: {bitstream_path.name}[/green]")
+        
+        # Get device info
+        try:
+            device_info = mim.describe()
+            console.print(f"[green]Device: {device_info.get('hardware', 'Unknown')}[/green]")
+            console.print(f"[green]Firmware: {device_info.get('firmware', 'Unknown')}[/green]")
+        except Exception as e:
+            logger.debug(f"Could not retrieve device info: {e}")
+        
+        # Keep connection open for user to interact with
+        console.print("[yellow]Multi-instrument mode is now active. Press Ctrl+C to disconnect.[/yellow]")
+        
+        try:
+            # Keep the connection alive
+            import time
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            console.print("\n[yellow]Disconnecting...[/yellow]")
+        finally:
+            mim.relinquish_ownership()
+            console.print("[green]Disconnected from device[/green]")
+            
+    except ImportError:
+        console.print("[red]Error: moku package not found. Please install it with: pip install moku[/red]")
+        raise typer.Exit(1)
+    except Exception as e:
+        console.print(f"[red]Failed to load bitstream: {e}[/red]")
+        logger.exception("Error loading bitstream")
+        raise typer.Exit(1)
+
 if __name__ == "__main__":
     app()
