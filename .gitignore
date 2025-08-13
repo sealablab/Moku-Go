@@ -120,3 +120,4 @@ commit_msg.txt
 # GHDL elaborated executable (named same as top-level unit)
 */tb_*
 */sim_*
+uv.lock
