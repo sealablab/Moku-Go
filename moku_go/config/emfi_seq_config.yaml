@@ -1,0 +1,23 @@
+# Moku-Go EMFI-Seq Configuration
+
+# State delays (cycles, 0-127)
+delays:
+  state1: 10  # State 1 delay
+  state2: 20  # State 2 delay
+  state3: 30  # State 3 delay
+  state4: 40  # State 4 delay
+
+# Stair-step voltage levels (-5.0V to +5.0V)
+voltages:
+  state1: 1.1  # State 1 voltage
+  state2: 1.2  # State 2 voltage
+  state3: 1.3  # State 3 voltage
+  state4: 1.4  # State 4 voltage
+
+# Clock configuration
+clock:
+  divider: 0  # Clock divider (0=÷1, 1=÷2, ..., 255=÷256)
+  
+# Sequencer state
+sequencer:
+  enabled: false  # Set to true to enable sequencer on startup
