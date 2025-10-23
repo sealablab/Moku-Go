@@ -72,7 +72,15 @@ class MokuEMFISeq:
             
             # Deploy EMFI-Seq bitstream to Slot 1
             logger.info(f"Deploying bitstream: {bitstream_path}")
-            self.emfi_seq = self.multi_instrument.set_instrument(1, CloudCompile, bitstream=bitstream_path)
+            try:
+                # Try with explicit file path
+                import os
+                abs_path = os.path.abspath(bitstream_path)
+                logger.info(f"Using absolute path: {abs_path}")
+                self.emfi_seq = self.multi_instrument.set_instrument(1, CloudCompile, bitstream=abs_path)
+            except Exception as e:
+                logger.error(f"Failed to deploy with absolute path: {e}")
+                raise
             
             # Set up Oscilloscope in Slot 2 for monitoring
             logger.info("Setting up Oscilloscope in Slot 2...")
