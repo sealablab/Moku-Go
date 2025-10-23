@@ -111,8 +111,9 @@ class MokuEMFISeq:
             # Configure oscilloscope for stair-step monitoring
             logger.info("Configuring Oscilloscope...")
             self.oscilloscope.set_timebase(-1e-3, 1e-3)  # ±1ms window
-            self.oscilloscope.set_source(1, "Input1")    # Channel 1: DAC stair-step
-            self.oscilloscope.set_source(2, "Input2")    # Channel 2: Status
+            # Use the correct source names for the oscilloscope
+            self.oscilloscope.set_source(1, "In1")       # Channel 1: DAC stair-step
+            self.oscilloscope.set_source(2, "In2")       # Channel 2: Status
             
             logger.info("EMFI-Seq deployment complete")
             return True
